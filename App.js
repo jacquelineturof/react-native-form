@@ -1,13 +1,31 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 
-import Form from './hooks/Form'
+import { enableScreens } from 'react-native-screens'
+import { createStore, combineReducers, applyMiddleware, compose } from 'redux'
+import { Provider } from 'react-redux'
+import thunk from 'redux-thunk'
+
+import authReducer from './store/reducers/auth'
+
+import AppNavigator from './navigation/AppNavigator'
+
+enableScreens()
+
+const rootReducer = combineReducers({
+  auth: authReducer
+})
+
+const store = createStore(rootReducer, compose(
+  applyMiddleware(thunk)
+))
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Form />
-    </View>
+    <Provider store = { store }>
+      <AppNavigator />
+    </Provider>
+
   );
 }
 

@@ -1,3 +1,10 @@
+export const updateObject = (oldObject, updatedProperties) => {
+    return {
+        ...oldObject,
+        ...updatedProperties
+    }
+}
+
 // Validaty rules for our user forms
 export const checkValidity =  ( value, rules ) => {
     let isValid = true

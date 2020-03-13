@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
 import { View, StyleSheet, Button, Image } from 'react-native'
+import { useDispatch } from 'react-redux'
+
+import { checkValidity } from '../shared/utility'
+import * as actions from '../store/actions'
 
 import Input from '../components/UI/Input'
 
@@ -14,12 +18,47 @@ const PASSWORD_RULES = {
     minLength: 6
 }
 
-export default function Form() {
+export default function Form({ navigation }) {
+    const dispatch = useDispatch()
+    /*
+        Form State
+    */
+    // default form is login, 3 formTypes: login, register, forgotPassword
+    const [ formType, setFormType ] = useState('login')
     const [ email, setEmail ] = useState('')
     const [ password, setPassword ] = useState('')
+    const [ confirmPassword, setConfirmPassword ] = useState('')
 
-    console.log(email)
-    console.log(password)
+    const submitHandler = () => {
+        let isEmailValid
+        let isPasswordValid
+
+        if (formType === 'login') {
+            isEmailValid = checkValidity(email, EMAIL_RULES)
+            isPasswordValid = checkValidity(password, PASSWORD_RULES)
+
+            if (isEmailValid && isPasswordValid) {
+                dispatch(actions.auth(email, password, false))
+                navigation.navigate('Main')
+            }
+        } else if (formType === 'register') {
+            isEmailValid = checkValidity(email, EMAIL_RULES)
+            isPasswordValid = checkValidity(password, PASSWORD_RULES)
+
+            if (password !== confirmPassword) {
+                console.log('Not matching!')
+                return
+            } else {
+                if (isEmailValid && isPasswordValid) {
+                    dispatch(actions.auth(email, password, true))
+                }
+            }
+        } else {
+            if (isEmailValid) {
+                dispatch(actions.accountRecovery(email))
+            }
+        }
+    }
 
     return (
         <View style = { styles.container }>
@@ -33,25 +72,70 @@ export default function Form() {
                 icon = "ios-mail"
                 validationRules = { EMAIL_RULES }
                 validationMessage = "Must be a valid email address." />
-            <Input
-                value = { password }
-                changed = { setPassword }
-                placeholder = "Enter Password Here"
-                icon = "ios-lock"
-                password = { true }
-                validationRules = { PASSWORD_RULES }
-                validationMessage = "Must be a minium of six characters." />
+            {
+                formType !== 'forgotPassword' 
+                    ? (
+                        <Input
+                            value = { password }
+                            changed = { setPassword }
+                            placeholder = "Enter Password Here"
+                            icon = "ios-lock"
+                            password = { true }
+                            validationRules = { PASSWORD_RULES }
+                            validationMessage = "Must be a minium of six characters." />
+                    )
+                    : null
+            }
+            {
+                formType === 'register'
+                    ? (
+                        <Input
+                            value = { confirmPassword }
+                            changed = { setConfirmPassword }
+                            placeholder = "Confirm Password Here"
+                            icon = "ios-checkmark"
+                            password = { true }
+                            validationRules = { PASSWORD_RULES }
+                            validationMessage = "Must be a minium of six characters." />
+                    )
+                    : null
+            }
             <Button
-                title = "Login"
+                title = "SUBMIT"
                 color = "#76BD1C"
-                style = { styles.button } />
+                style = { styles.button }
+                onPress = { submitHandler } />
             <View style = { styles.linkContainer }>
-                <Button 
-                    title = "Forgot Password?"
-                    color = "#124E78" />
-                <Button 
-                    title = "Register"
-                    color = "#124E78" />
+            {
+                formType !== 'forgotPassword'
+                    ? (
+                        <Button 
+                            title = "Forgot Password?"
+                            color = "#124E78"
+                            onPress = { () => setFormType('forgotPassword') } />
+                    )
+                    : null
+            }
+            {
+                formType !== 'register'
+                    ? (
+                        <Button 
+                            title = "Register"
+                            color = "#124E78"
+                            onPress = { () => setFormType('register') } />
+                    )
+                    : null
+            }
+            {
+                formType !== 'login'
+                    ? (
+                        <Button 
+                            title = "Login"
+                            color = "#124E78"
+                            onPress = { () => setFormType('login') } />
+                    )
+                    : null
+            }
             </View>
         </View>
     )
